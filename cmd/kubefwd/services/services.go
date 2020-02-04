@@ -211,6 +211,7 @@ Try:
 
 		for ii, namespace := range namespaces {
 			// ShortName field only use short name for the first namespace and context
+			log.Infof("Forwarding Namespace: %s\n", namespace)
 			fwdServiceOpts := FwdServiceOpts{
 				Wg:           wg,
 				ClientSet:    clientSet,
@@ -259,6 +260,10 @@ type FwdServiceOpts struct {
 
 func (opts *FwdServiceOpts) StartListen(stopListenCh <-chan struct{}) {
 
+	log.Infof("Starting Listener for namespace : %s\n", opts.Namespace)
+	log.Infof("ClientConfig  : %v\n", opts.ClientConfig)
+	log.Infof("Context  : %s\n", opts.Context)
+	log.Infof("ClientSet : %v\n", opts.ClientSet)
 	optionsModifier := func(options *metav1.ListOptions) {
 		options.FieldSelector = fields.Everything().String()
 		options.LabelSelector = opts.ListOptions.LabelSelector
