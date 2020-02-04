@@ -268,6 +268,7 @@ func (opts *FwdServiceOpts) StartListen(stopListenCh <-chan struct{}) {
 		options.FieldSelector = fields.Everything().String()
 		options.LabelSelector = opts.ListOptions.LabelSelector
 	}
+	log.Infof("optionsModifier : %v\n", optionsModifier)
 	watchlist := cache.NewFilteredListWatchFromClient(opts.RESTClient, "services", opts.Namespace, optionsModifier)
 	_, controller := cache.NewInformer(watchlist, &v1.Service{}, 0, cache.ResourceEventHandlerFuncs{
 		AddFunc:    opts.AddServiceHandler,
@@ -275,6 +276,8 @@ func (opts *FwdServiceOpts) StartListen(stopListenCh <-chan struct{}) {
 		UpdateFunc: opts.UpdateServiceHandler,
 	},
 	)
+	log.Infof("watchList : %v\n", watchlist)
+	log.Infof("controller : %v\n", controller)
 
 	stop := make(chan struct{})
 	go controller.Run(stop)
@@ -286,14 +289,16 @@ func (opts *FwdServiceOpts) StartListen(stopListenCh <-chan struct{}) {
 func (opts *FwdServiceOpts) AddServiceHandler(obj interface{}) {
 	key, err := cache.MetaNamespaceKeyFunc(obj)
 	if err != nil {
+		log.Infof("Error in AddServiceHandler MetaNamespaceKeyFunc : %v", err)
 		return
 	}
 	svcNamespace, svcName, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
+		log.Infof("Error in AddServiceHandler SplitMetaNamespaceKey : %v", err)
 		return
 	}
 
-	log.Debugf("Add service %s namespace %s.", svcName, svcNamespace)
+	log.Infof("Add service %s namespace %s.", svcName, svcNamespace)
 
 	opts.ForwardService(svcName, svcNamespace)
 }
@@ -301,14 +306,16 @@ func (opts *FwdServiceOpts) AddServiceHandler(obj interface{}) {
 func (opts *FwdServiceOpts) DeleteServiceHandler(obj interface{}) {
 	key, err := cache.MetaNamespaceKeyFunc(obj)
 	if err != nil {
+		log.Infof("Error in DeleteServiceHandler MetaNamespaceKeyFunc : %v", err)
 		return
 	}
 	svcNamespace, svcName, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
+		log.Infof("Error in DeleteServiceHandler SplitMetaNamespaceKey : %v", err)
 		return
 	}
 
-	log.Debugf("Delete service %s namespace %s.", svcName, svcNamespace)
+	log.Infof("Delete service %s namespace %s.", svcName, svcNamespace)
 
 	opts.UnForwardService(svcName, svcNamespace)
 }
@@ -317,6 +324,8 @@ func (opts *FwdServiceOpts) UpdateServiceHandler(old interface{}, new interface{
 	key, err := cache.MetaNamespaceKeyFunc(new)
 	if err == nil {
 		log.Printf("update service %s.", key)
+	} else {
+		log.Infof("Error in UpdateServiceHandler MetaNamespaceKeyFunc : %v", err)
 	}
 }
 
